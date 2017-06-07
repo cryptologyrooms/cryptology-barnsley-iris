@@ -6,7 +6,6 @@
 /* Defines, typedefs, constants */
 
 static const int SERVO_PIN = 2;
-static const int MAGLOCK_PIN = 9;
 static const int MOTOR_PIN_1 = 3;
 static const int MOTOR_PIN_2 = 5;
 static const int MOTOR_PIN_3 = 4;
@@ -20,6 +19,8 @@ static const int SERVO_OPEN_POSITION = 160;
 static const int IRIS_SPEED = 10;
 static const int STEPS_PER_REV = 4096;
 static const int IRIS_CLOSE_POSITION = 2900;
+
+static const int TRIGGER_DELAY_IN_MILLISECONDS = 0;
 
 /* Local Objects/Variables */
 static Servo s_servo;
@@ -51,7 +52,6 @@ void setup()
 {
 	Serial.begin(115200);
 	pinMode(SERVO_PIN, OUTPUT);
-	pinMode(MAGLOCK_PIN, OUTPUT);
 	pinMode(MOTOR_PIN_1, OUTPUT);
 	pinMode(MOTOR_PIN_2, OUTPUT);
 	pinMode(MOTOR_PIN_3, OUTPUT);
@@ -76,6 +76,14 @@ void setup()
 	Serial.println("Waiting for trigger");
 
 	while(digitalRead(TRIGGER_PIN) != LOW) {}
+
+	if (TRIGGER_DELAY_IN_MILLISECONDS)
+	{
+		Serial.print("Delaying opening for ");
+		Serial.print(TRIGGER_DELAY_IN_MILLISECONDS);
+		Serial.println("ms");
+		delay(TRIGGER_DELAY_IN_MILLISECONDS);
+	}
 
 	Serial.println("Opening servo");
 
