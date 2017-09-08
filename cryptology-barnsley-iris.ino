@@ -6,64 +6,83 @@
 /* Defines, typedefs, constants */
 
 static const int SERVO_PIN = 2;
-static const int MOTOR_PIN_1 = 3;
-static const int MOTOR_PIN_2 = 5;
-static const int MOTOR_PIN_3 = 4;
-static const int MOTOR_PIN_4 = 6;
-static const int HOME_PIN = A0;
-static const int TRIGGER_PIN = A1;
 
-static const int SERVO_INITIAL_POSITION = 0;
-static const int SERVO_OPEN_POSITION = 160;
+static const int IRIS_MOTOR_PIN_1 = 3;
+static const int IRIS_MOTOR_PIN_2 = 5;
+static const int IRIS_MOTOR_PIN_3 = 4;
+static const int IRIS_MOTOR_PIN_4 = 6;
+
+static const int CURTAIN_MOTOR_PIN_1 = 7;
+static const int CURTAIN_MOTOR_PIN_2 = 8;
+static const int CURTAIN_MOTOR_PIN_3 = 9;
+static const int CURTAIN_MOTOR_PIN_4 = 10;
+
+static const int IRIS_HOME_PIN = A0;
+static const int TRIGGER_PIN = 9;
 
 static const int IRIS_SPEED = 10;
+static const int CURTAIN_SPEED = 10;
 static const int STEPS_PER_REV = 4096;
-static const int IRIS_CLOSE_POSITION = 2900;
+static const int IRIS_CLOSE_POSITION = 3100;
 
 static const int TRIGGER_DELAY_IN_MILLISECONDS = 0;
 
 /* Local Objects/Variables */
-static Servo s_servo;
-static Stepper s_stepper(STEPS_PER_REV, MOTOR_PIN_1, MOTOR_PIN_2, MOTOR_PIN_3, MOTOR_PIN_4);
+
+static Stepper s_iris_stepper(STEPS_PER_REV, IRIS_MOTOR_PIN_1, IRIS_MOTOR_PIN_2, IRIS_MOTOR_PIN_3, IRIS_MOTOR_PIN_4);
+static Stepper s_curtain_stepper(STEPS_PER_REV, CURTAIN_MOTOR_PIN_1, CURTAIN_MOTOR_PIN_2, CURTAIN_MOTOR_PIN_3, CURTAIN_MOTOR_PIN_4);
+
 
 /* Local Functions */
 
 static bool iris_open()
 {
-	return digitalRead(HOME_PIN) == LOW;
+	return digitalRead(IRIS_HOME_PIN) == LOW;
 }
 
 static void open_iris()
 {
-	s_stepper.setSpeed(IRIS_SPEED);
+	s_iris_stepper.setSpeed(IRIS_SPEED);
 	while (!iris_open())
 	{
-		s_stepper.step(1);
+		s_iris_stepper.step(1);
 		delayMicroseconds(100);
 	}
 }
 
 static void close_iris()
 {
-	s_stepper.step(-IRIS_CLOSE_POSITION);
+	s_iris_stepper.step(-IRIS_CLOSE_POSITION);
+}
+
+static void open_curtain(int step_delay)
+{
+	s_curtain_stepper.setSpeed(CURTAIN_SPEED);
+	while (!iris_open())
+	{
+		s_curtain_stepper.step(1);
+		delayMicroseconds(100);
+	}
 }
 
 void setup()
 {
 	Serial.begin(115200);
-	pinMode(SERVO_PIN, OUTPUT);
-	pinMode(MOTOR_PIN_1, OUTPUT);
-	pinMode(MOTOR_PIN_2, OUTPUT);
-	pinMode(MOTOR_PIN_3, OUTPUT);
-	pinMode(MOTOR_PIN_4, OUTPUT);
-	pinMode(HOME_PIN, INPUT_PULLUP);
+
+	pinMode(IRIS_MOTOR_PIN_1, OUTPUT);
+	pinMode(IRIS_MOTOR_PIN_2, OUTPUT);
+	pinMode(IRIS_MOTOR_PIN_3, OUTPUT);
+	pinMode(IRIS_MOTOR_PIN_4, OUTPUT);
+	
+	pinMode(CURTAIN_MOTOR_PIN_1, OUTPUT);
+	pinMode(CURTAIN_MOTOR_PIN_2, OUTPUT);
+	pinMode(CURTAIN_MOTOR_PIN_3, OUTPUT);
+	pinMode(CURTAIN_MOTOR_PIN_4, OUTPUT);
+	
+	pinMode(IRIS_HOME_PIN, INPUT_PULLUP);
 	pinMode(TRIGGER_PIN, INPUT_PULLUP);
 
-	s_servo.attach(SERVO_PIN);
-
-	Serial.println("Moving servo to initial position");
-
-	s_servo.write(SERVO_INITIAL_POSITION);
+	Serial.println("Moving curtain to open position");
 
 	Serial.println("Finding home position");
 
@@ -87,7 +106,7 @@ void setup()
 
 	Serial.println("Opening servo");
 
-	s_servo.write(SERVO_OPEN_POSITION);
+	open_curtain(100);
 
 	delay(100);
 
