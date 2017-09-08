@@ -1,11 +1,8 @@
 /* Arduino library includes */
 
-#include <Servo.h>
 #include <Stepper.h>
 
 /* Defines, typedefs, constants */
-
-static const int SERVO_PIN = 2;
 
 static const int IRIS_MOTOR_PIN_1 = 3;
 static const int IRIS_MOTOR_PIN_2 = 5;
@@ -18,12 +15,14 @@ static const int CURTAIN_MOTOR_PIN_3 = 9;
 static const int CURTAIN_MOTOR_PIN_4 = 10;
 
 static const int IRIS_HOME_PIN = A0;
-static const int TRIGGER_PIN = 9;
+static const int CURTAIN_HOME_PIN = A1;
+static const int TRIGGER_PIN = A2;
 
 static const int IRIS_SPEED = 10;
 static const int CURTAIN_SPEED = 10;
 static const int STEPS_PER_REV = 4096;
 static const int IRIS_CLOSE_POSITION = 3100;
+static const int CURTAIN_CLOSE_POSITION = 2000;
 
 static const int TRIGGER_DELAY_IN_MILLISECONDS = 0;
 
@@ -38,6 +37,11 @@ static Stepper s_curtain_stepper(STEPS_PER_REV, CURTAIN_MOTOR_PIN_1, CURTAIN_MOT
 static bool iris_open()
 {
 	return digitalRead(IRIS_HOME_PIN) == LOW;
+}
+
+static bool curtain_open()
+{
+  return digitalRead(CURTAIN_HOME_PIN) == LOW;  
 }
 
 static void open_iris()
@@ -55,10 +59,15 @@ static void close_iris()
 	s_iris_stepper.step(-IRIS_CLOSE_POSITION);
 }
 
-static void open_curtain(int step_delay)
+static void close_curtain()
+{
+  s_curtain_stepper.step(-CURTAIN_CLOSE_POSITION);
+}
+
+static void open_curtain()
 {
 	s_curtain_stepper.setSpeed(CURTAIN_SPEED);
-	while (!iris_open())
+	while (!curtain_open())
 	{
 		s_curtain_stepper.step(1);
 		delayMicroseconds(100);
@@ -80,16 +89,19 @@ void setup()
 	pinMode(CURTAIN_MOTOR_PIN_4, OUTPUT);
 	
 	pinMode(IRIS_HOME_PIN, INPUT_PULLUP);
+  pinMode(CURTAIN_HOME_PIN, INPUT_PULLUP);
 	pinMode(TRIGGER_PIN, INPUT_PULLUP);
 
-	Serial.println("Moving curtain to open position");
+	Serial.println("Finding curtain open position");
+  open_curtain();
 
+  Serial.println("Closing curtain");
+  close_curtain();
+	
 	Serial.println("Finding home position");
-
 	open_iris();
 
 	Serial.println("Closing iris");
-
 	close_iris();
 
 	Serial.println("Waiting for trigger");
@@ -104,9 +116,8 @@ void setup()
 		delay(TRIGGER_DELAY_IN_MILLISECONDS);
 	}
 
-	Serial.println("Opening servo");
-
-	open_curtain(100);
+	Serial.println("Opening curtain");
+	open_curtain();
 
 	delay(100);
 
