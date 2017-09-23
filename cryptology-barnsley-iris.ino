@@ -2,6 +2,8 @@
 
 #include <Stepper.h>
 
+#include "iris.h"
+
 /* Defines, typedefs, constants */
 
 static const int IRIS_MOTOR_PIN_1 = 3;
@@ -14,14 +16,11 @@ static const int CURTAIN_MOTOR_PIN_2 = 9;
 static const int CURTAIN_MOTOR_PIN_3 = 8;
 static const int CURTAIN_MOTOR_PIN_4 = 10;
 
-static const int IRIS_HOME_PIN = A0;
 static const int CURTAIN_HOME_PIN = A1;
 static const int TRIGGER_PIN = A2;
 
-static const int IRIS_SPEED = 10;
 static const int CURTAIN_SPEED = 3;
 static const int STEPS_PER_REV = 4096;
-static const int IRIS_CLOSE_POSITION = 3100;
 static const int CURTAIN_CLOSE_POSITION = 340;
 
 static const int TRIGGER_DELAY_IN_MILLISECONDS = 0;
@@ -34,29 +33,9 @@ static Stepper s_curtain_stepper(STEPS_PER_REV, CURTAIN_MOTOR_PIN_1, CURTAIN_MOT
 
 /* Local Functions */
 
-static bool iris_open()
-{
-	return digitalRead(IRIS_HOME_PIN) == LOW;
-}
-
 static bool curtain_open()
 {
   return digitalRead(CURTAIN_HOME_PIN) == LOW;  
-}
-
-static void open_iris()
-{
-	s_iris_stepper.setSpeed(IRIS_SPEED);
-	while (!iris_open())
-	{
-		s_iris_stepper.step(1);
-		delayMicroseconds(100);
-	}
-}
-
-static void close_iris()
-{
-	s_iris_stepper.step(-IRIS_CLOSE_POSITION);
 }
 
 static void close_curtain()
@@ -98,22 +77,22 @@ void setup()
 	pinMode(CURTAIN_MOTOR_PIN_4, OUTPUT);
 	
 	pinMode(IRIS_HOME_PIN, INPUT_PULLUP);
-  pinMode(CURTAIN_HOME_PIN, INPUT_PULLUP);
+  	pinMode(CURTAIN_HOME_PIN, INPUT_PULLUP);
 	pinMode(TRIGGER_PIN, INPUT_PULLUP);
 
 	Serial.println("Finding curtain open position");
-  open_curtain();
+  	open_curtain();
 
-  delay(100);
+  	delay(100);
   
-  Serial.println("Closing curtain");
-  close_curtain();
+  	Serial.println("Closing curtain");
+  	close_curtain();
 	
 	Serial.println("Finding home position");
-	open_iris();
+	iris_home(s_iris_stepper);
 
 	Serial.println("Closing iris");
-	close_iris();
+	iris_close(s_iris_stepper);
 
 	Serial.println("Waiting for trigger");
 
@@ -139,7 +118,7 @@ void setup()
 
 	Serial.println("Opening iris");
 
-	open_iris();
+	iris_open(s_iris_stepper);
 
 	Serial.println("Iris open");
 }
